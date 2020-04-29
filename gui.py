@@ -186,7 +186,7 @@ class app:
             print("range already created")
             self.targetRange = ((self.targetRange[0][0], self.targetRange[0][1]),(x,y))
             canvas.delete("rangePoint")
-            canvas.create_rectangle(self.targetRange[0][0], self.targetRange[0][1], self.targetRange[1][0], self.targetRange[1][1], fill='blue', stipple='gray50', tag="range")
+            canvas.create_rectangle(self.targetRange[0][0], self.targetRange[0][1], self.targetRange[1][0], self.targetRange[1][1], fill='blue', stipple='gray50', tag="range", width=5)
         else:
             canvas.delete("range")
             self.targetRange = ((x,y), None)

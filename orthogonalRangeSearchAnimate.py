@@ -1,5 +1,6 @@
 import unittest
 import time
+import random
 
 from typing import List, Tuple
 Point = Tuple[int, int]
@@ -52,12 +53,15 @@ class OrthogonalRangeSearch():
     # Returns  --> TreeNode Object at root of KDTree containing every point in points
     def recurseBuildKDTree(self, points: List[Point], depth: int, canvas, currentRegion):
     
-
+    
         time.sleep(.1)
         # Base Case
         if len(points) == 0: 
             return None
         if len(points) == 1:
+            randColor = "#"+''.join([random.choice('456789ABCDEF') for j in range(6)])   
+            canvas.create_rectangle(max(currentRegion[0][0], 0), max(currentRegion[1][0], 0), min(currentRegion[0][1], self.width), min(currentRegion[1][1], self.height), fill=randColor, stipple='gray50', tag="region")
+            canvas.lift("range")
             return TreeNode(points[0])
 
 
