@@ -23,13 +23,14 @@ class OrthogonalRangeSearch():
     # Modifies --> None
     # Returns  --> KDTree Object containg every point in points
 
-    def orthogonalRangeSearch(self, points, range):
+    def orthogonalRangeSearch(self, points, targetRange):
+        print("RANGE: ", targetRange)
         kdRoot = self.recurseBuildKDTree(points, 0)
         ans = []
 
         infRegion = ((-float("inf"),float("inf")),(-float("inf"), float("inf")))
 
-        self.recurseSearchKDTree(kdRoot, infRegion, range, ans)
+        self.recurseSearchKDTree(kdRoot, infRegion, targetRange, ans)
         return sorted(ans)
 
     # recurseBuildKDTree --------------------------------------------------------------------------------------------
@@ -90,7 +91,9 @@ class OrthogonalRangeSearch():
     
     def recurseSearchKDTree(self, node : TreeNode, currentRegion, targetRegion, output: List[Point]):
         
-        
+
+        if node == None: return
+        # print(" NODE: ", node.val, "node.left: ", node.left.val, "node.right: ", node.right.val)
         # If node is a leaf then report that point if it lies in R
         if node.left == None and node.right == None:
             if targetRegion[0][0] <= node.val[0] <= targetRegion[0][1] and targetRegion[1][0] <= node.val[1] <= targetRegion[1][1]:
@@ -148,13 +151,13 @@ class OrthogonalRangeSearch():
         if root == None:
             return
 
-        self.reportSubTree(root.left)
+        self.reportSubTree(root.left, output)
 
         # If node is a leaf add it to the output array
         if root.left == None and root.right == None:
             output.append(root.val)
 
-        self.reportSubTree(root.right)
+        self.reportSubTree(root.right, output)
 
 
 

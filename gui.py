@@ -1,9 +1,14 @@
 from tkinter import *
 import threading
 import random
+from orthogonalRangeSearch import OrthogonalRangeSearch
+from orthogonalRangeSearchAnimate import OrthogonalRangeSearch as OrthogonalRangeSearchAnimate
 
 from typing import List, Tuple
 
+
+import sys
+sys.setrecursionlimit(1500)
 
 Point = Tuple[int, int]
 
@@ -25,7 +30,7 @@ class app:
 
 
         self.pointList = []
-        self.range = ()
+        self.targetRange = ()
      
         self.root.title("Convex Hull")
         self.root.geometry(str(self.winWidth) + "x" + str(self.winHeight))
@@ -42,13 +47,13 @@ class app:
         self.optionFrame.pack(side=RIGHT,  expand=True, fill='both', anchor=E)
 
        
+        self.animateVar = IntVar(0)
 
         
 
-        self.startButton = Button(self.optionFrame, width=10, height=1, text="Start", padx=1, pady=1, command=  self.startButtonPressed)
+        self.startButton = Button(self.optionFrame, width=10, height=1, text="Start", padx=1, pady=1, command=  lambda canvas=self.canvas, pointList=self.pointList, animate=self.animateVar: self.startButtonPressed(canvas, pointList, animate))
         self.startButton.pack(side=TOP,  expand=False, fill="none")
 
-        self.animateVar = IntVar(0)
         self.animateCheckbox = Checkbutton(self.optionFrame, text="Animate", variable=self.animateVar)
         self.animateCheckbox.pack(side=TOP)
        
@@ -99,12 +104,30 @@ class app:
     # startButtonPressed --------------------------------------------------------------------------------------------
     # Called when the start Button is pressed on
     #
+    #
     #   Modifies: None
     # --> Returns: None
 
-    def startButtonPressed(self):
-        print("Start Button Pressed")
+    def startButtonPressed(self, canvas, pointList, animateFlag):
         
+        print(pointList)
+        print(range)
+
+
+        if not animateFlag.get():
+            ORS = OrthogonalRangeSearch()
+            leftX = min(self.targetRange[0][0],self.targetRange[1][0])
+            rightX = max(self.targetRange[0][0],self.targetRange[1][0])
+            bottomY = min(self.targetRange[0][1],self.targetRange[1][1])
+            topY = max(self.targetRange[0][1],self.targetRange[1][1])        
+
+            newRange = ((leftX, rightX),(bottomY, topY))
+
+            result = ORS.orthogonalRangeSearch(pointList, newRange)
+
+            for x,y in result:
+                canvas.create_oval(x - 5, y - 5, x + 5, y + 5, fill='red')
+
         
 
         
@@ -126,7 +149,7 @@ class app:
     # Called when canvas(self.canvas) is right clicked on, draws the range area if a point was previously selected
     #   Parameters: Canvas (tkinter), range: Tuple[Point]
     #
-    #   Modifies: self.range
+    #   Modifies: self.targetRange
     # --> Returns: None
 
     def onRightClick(self, event, canvas):
@@ -135,19 +158,19 @@ class app:
         print(range)
         print("x: ", x, " y: ", y)
 
-        if self.range == ():
+        if self.targetRange == ():
             canvas.create_oval(x - 3, y - 3, x + 3, y + 3, fill='blue', tag="rangePoint")
-            self.range = ((x,y), None)
-            print(self.range)
+            self.targetRange = ((x,y), None)
+            print(self.targetRange)
 
-        elif self.range[1] == None:
+        elif self.targetRange[1] == None:
             print("range already created")
-            self.range = ((self.range[0][0], self.range[0][1]),(x,y))
+            self.targetRange = ((self.targetRange[0][0], self.targetRange[0][1]),(x,y))
             canvas.delete("rangePoint")
-            canvas.create_rectangle(self.range[0][0], self.range[0][1], self.range[1][0], self.range[1][1], fill='blue', stipple='gray50', tag="range")
+            canvas.create_rectangle(self.targetRange[0][0], self.targetRange[0][1], self.targetRange[1][0], self.targetRange[1][1], fill='blue', stipple='gray50', tag="range")
         else:
             canvas.delete("range")
-            self.range = ((x,y), None)
+            self.targetRange = ((x,y), None)
 
      
         
