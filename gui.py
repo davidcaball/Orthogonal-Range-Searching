@@ -34,7 +34,7 @@ class app:
         self.pointList = set()
         self.targetRange = ()
      
-        self.root.title("Convex Hull")
+        self.root.title("Orthogonal Range Search")
         self.root.geometry(str(self.winWidth) + "x" + str(self.winHeight))
 
         self.mainFrame = Frame(self.root, borderwidth=1, relief=FLAT, width = self.winWidth, height = self.winHeight)
@@ -51,13 +51,14 @@ class app:
        
         self.animateVar = IntVar(0)
 
-        
+        self.speedSlider = Scale(self.optionFrame, from_=1, to=100, orient=HORIZONTAL, label="Speed:")
 
-        self.startButton = Button(self.optionFrame, width=10, height=1, text="Start", padx=1, pady=1, command=  lambda canvas=self.canvas, pointList=self.pointList, animate=self.animateVar: self.startButtonPressed(canvas, pointList, animate))
+        self.startButton = Button(self.optionFrame, width=10, height=1, text="Start", padx=1, pady=1, command=  lambda canvas=self.canvas, pointList=self.pointList, animate=self.animateVar, speedSlider=self.speedSlider: self.startButtonPressed(canvas, pointList, animate, speedSlider))
         self.startButton.pack(side=TOP,  expand=False, fill="none")
 
         self.animateCheckbox = Checkbutton(self.optionFrame, text="Animate", variable=self.animateVar)
         self.animateCheckbox.pack(side=TOP)
+        self.speedSlider.pack(side=TOP)
        
         self.generatePointsLabel = Label(self.optionFrame, text="Number of Points:", width=20)
         self.numOfPointsField = Entry(self.optionFrame, width = 10)
@@ -81,6 +82,7 @@ class app:
     # --> Returns: None
     def generateButtonPressed(self, numEntry, pointList, rangeX, rangeY, canvas):
 
+        canvas.delete("all")
         num = int(numEntry.get())
         
         pointList.clear()
@@ -111,7 +113,7 @@ class app:
     #   Modifies: None
     # --> Returns: None
 
-    def startButtonPressed(self, canvas, pointList, animateFlag):
+    def startButtonPressed(self, canvas, pointList, animateFlag, speedSlider):
         
         print(pointList)
         print(range)
@@ -135,13 +137,13 @@ class app:
 
         else:
 
-            self.t1 = threading.Thread(target=self.animateORS, args=(pointList, newRange, canvas) )
+            self.t1 = threading.Thread(target=self.animateORS, args=(pointList, newRange, canvas, speedSlider) )
             self.t1.start()
 
         
-    def animateORS(self, pointList, newRange, canvas):
+    def animateORS(self, pointList, newRange, canvas, speedSlider):
 
-        ORS = OrthogonalRangeSearchAnimate(canvas)
+        ORS = OrthogonalRangeSearchAnimate(canvas, speedSlider)
         result = ORS.orthogonalRangeSearch(pointList, newRange, canvas)
 
         for x,y in result:
@@ -186,7 +188,7 @@ class app:
             print("range already created")
             self.targetRange = ((self.targetRange[0][0], self.targetRange[0][1]),(x,y))
             canvas.delete("rangePoint")
-            canvas.create_rectangle(self.targetRange[0][0], self.targetRange[0][1], self.targetRange[1][0], self.targetRange[1][1], fill='blue', stipple='gray50', tag="range", width=5)
+            canvas.create_rectangle(self.targetRange[0][0], self.targetRange[0][1], self.targetRange[1][0], self.targetRange[1][1], fill='blue', stipple='gray25', tag="range", width=5)
         else:
             canvas.delete("range")
             self.targetRange = ((x,y), None)

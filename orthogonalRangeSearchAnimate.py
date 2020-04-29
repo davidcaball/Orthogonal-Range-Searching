@@ -18,9 +18,10 @@ class OrthogonalRangeSearch():
 
 
 
-    def __init__(self, canvas):
+    def __init__(self, canvas, speedSlider):
         self.width = canvas.winfo_width()
         self.height = canvas.winfo_height()
+        self.speedSlider = speedSlider
 
         print("width: ", self.width)
         print("height: ", self.height)
@@ -41,7 +42,7 @@ class OrthogonalRangeSearch():
 
         infRegion = ((-float("inf"),float("inf")),(-float("inf"), float("inf")))
 
-        self.recurseSearchKDTree(kdRoot, infRegion, targetRange, ans)
+        self.recurseSearchKDTree(kdRoot, infRegion, targetRange, ans, canvas)
         return sorted(ans)
 
 
@@ -52,21 +53,25 @@ class OrthogonalRangeSearch():
     # Modifies --> None
     # Returns  --> TreeNode Object at root of KDTree containing every point in points
     def recurseBuildKDTree(self, points: List[Point], depth: int, canvas, currentRegion):
+        
+
+        canvas.delete("tempPoints")
+        for x,y in points:
+            canvas.create_oval(x - 5, y - 5, x + 5, y + 5, fill='green', tag="tempPoints")
+
     
-    
-        time.sleep(.1)
+        time.sleep(1/ self.speedSlider.get())
         # Base Case
         if len(points) == 0: 
             return None
         if len(points) == 1:
             randColor = "#"+''.join([random.choice('456789ABCDEF') for j in range(6)])   
-            canvas.create_rectangle(max(currentRegion[0][0], 0), max(currentRegion[1][0], 0), min(currentRegion[0][1], self.width), min(currentRegion[1][1], self.height), fill=randColor, stipple='gray50', tag="region")
-            canvas.lift("range")
+            temp = canvas.create_rectangle(max(currentRegion[0][0], 0), max(currentRegion[1][0], 0), min(currentRegion[0][1], self.width), min(currentRegion[1][1], self.height), fill=randColor, stipple='gray50', tag="region")
+            canvas.lower(temp)
             return TreeNode(points[0])
 
 
-
-        print(currentRegion)
+       
 
         leftChildRegion, rightChildRegion = None, None
 
@@ -115,6 +120,7 @@ class OrthogonalRangeSearch():
         newNode.left = leftChild
         newNode.right = rightChild
 
+        canvas.delete("tempPoints")
         return newNode
 
     # recurseSearchKDTree -----------------------------------------------------------------------------------------
@@ -125,14 +131,18 @@ class OrthogonalRangeSearch():
     # Modifies --> None
     # Returns  --> set of points from the kdTree in targetRegion
     
-    def recurseSearchKDTree(self, node : TreeNode, currentRegion, targetRegion, output: List[Point]):
+    def recurseSearchKDTree(self, node : TreeNode, currentRegion, targetRegion, output: List[Point], canvas):
         
-
+        time.sleep(1/ self.speedSlider.get())
+        canvas.delete("currentRegion")
+        temp = canvas.create_rectangle(max(currentRegion[0][0], 0), max(currentRegion[1][0], 0), min(currentRegion[0][1], self.width), min(currentRegion[1][1], self.height), width = 5, outline='red', tag="currentRegion")
         if node == None: return
         # print(" NODE: ", node.val, "node.left: ", node.left.val, "node.right: ", node.right.val)
         # If node is a leaf then report that point if it lies in R
         if node.left == None and node.right == None:
             if targetRegion[0][0] <= node.val[0] <= targetRegion[0][1] and targetRegion[1][0] <= node.val[1] <= targetRegion[1][1]:
+                x,y = node.val
+                canvas.create_oval(x - 5, y - 5, x + 5, y + 5, fill='red', tag="endPoints")
                 output.append(node.val)
             return
 
@@ -152,29 +162,30 @@ class OrthogonalRangeSearch():
         # if region of left child is fully contained in target region
         if self.containsRegion(targetRegion, leftChildRegion):
             # Report all leaves in the subtree, (Add them to the output array)
-            self.reportSubTree(node.left, output)
+            canvas.delete("currentRegion")
+            canvas.create_rectangle(max(leftChildRegion[0][0], 0), max(leftChildRegion[1][0], 0), min(leftChildRegion[0][1], self.width), min(leftChildRegion[1][1], self.height), width = 5, outline='green', tag="currentRegion")
+            self.reportSubTree(node.left, output, canvas)
 
         # Else if region of left child intersects target region
         elif self.regionsIntersect(targetRegion, leftChildRegion):  
             #recurseSearchKDTree(lc(node)
-            self.recurseSearchKDTree(node.left, leftChildRegion, targetRegion, output)
+            self.recurseSearchKDTree(node.left, leftChildRegion, targetRegion, output, canvas)
 
-
-
-        
 
         
         # if region of right child is fully contained in target region
         if self.containsRegion(targetRegion, rightChildRegion):
             # Report all leaves in the subtree, (Add them to the output array)
-            self.reportSubTree(node.right, output)
+            canvas.delete("currentRegion")
+            canvas.create_rectangle(max(rightChildRegion[0][0], 0), max(rightChildRegion[1][0], 0), min(rightChildRegion[0][1], self.width), min(rightChildRegion[1][1], self.height), width = 5, outline='green', tag="currentRegion")
+            self.reportSubTree(node.right, output, canvas)
 
         # Else if region of right child intersects target region
         elif self.regionsIntersect(targetRegion, rightChildRegion):      
             #recurseSearchKDTree(rc(node)
-            self.recurseSearchKDTree(node.right, rightChildRegion, targetRegion, output)
+            self.recurseSearchKDTree(node.right, rightChildRegion, targetRegion, output, canvas)
 
-
+        canvas.delete("currentRegion")
 
 
 
@@ -183,17 +194,21 @@ class OrthogonalRangeSearch():
     #  
     # Modifies --> output
     # Returns --> None
-    def reportSubTree(self, root, output):
+    def reportSubTree(self, root, output, canvas):
+        
         if root == None:
             return
 
-        self.reportSubTree(root.left, output)
+        self.reportSubTree(root.left, output, canvas)
 
         # If node is a leaf add it to the output array
         if root.left == None and root.right == None:
+            time.sleep(2/ self.speedSlider.get())
+            x,y = root.val
+            canvas.create_oval(x - 5, y - 5, x + 5, y + 5, fill='red', tag="endPoints")
             output.append(root.val)
 
-        self.reportSubTree(root.right, output)
+        self.reportSubTree(root.right, output, canvas)
 
 
 
