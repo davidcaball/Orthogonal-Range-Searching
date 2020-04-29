@@ -15,12 +15,29 @@ class TreeNode(object):
 class OrthogonalRangeSearch():
 
 
+    # orthogonalRangeSearch --------------------------------------------------------------------------------------------
+    # main function for input to the problem, takes in a list of points and a range, utilizes recurseBuildKDTree to build
+    # a kdTree with the given points. It then uses recuseSearchKDTree to find the points within the range
+    # Input: points: List[Point], depth: int
+    #
+    # Modifies --> None
+    # Returns  --> KDTree Object containg every point in points
+
+    def orthogonalRangeSearch(self, points, range):
+        kdRoot = self.recurseBuildKDTree(points, 0)
+        ans = []
+
+        infRegion = ((-float("inf"),float("inf")),(-float("inf"), float("inf")))
+
+        self.recurseSearchKDTree(kdRoot, infRegion, range, ans)
+        return sorted(ans)
+
     # recurseBuildKDTree --------------------------------------------------------------------------------------------
     # A recursive algorithm to build a 2 dimensional KD tree given a set of points. First called with depth 0
     # Input: points: List[Point], depth: int
     #
     # Modifies --> None
-    # Returns  --> KDTree Object containg every point in points
+    # Returns  --> TreeNode Object at root of KDTree containing every point in points
     def recurseBuildKDTree(self, points: List[Point], depth: int):
     
 
@@ -73,10 +90,9 @@ class OrthogonalRangeSearch():
     
     def recurseSearchKDTree(self, node : TreeNode, currentRegion, targetRegion, output: List[Point]):
         
-        print("on Node: ", node.val, ", Current Region: ", currentRegion)
+        
         # If node is a leaf then report that point if it lies in R
         if node.left == None and node.right == None:
-            print("     IS A LEAF")
             if targetRegion[0][0] <= node.val[0] <= targetRegion[0][1] and targetRegion[1][0] <= node.val[1] <= targetRegion[1][1]:
                 output.append(node.val)
             return
@@ -91,36 +107,31 @@ class OrthogonalRangeSearch():
             leftChildRegion = ( (currentRegion[0][0], currentRegion[0][1]) , (currentRegion[1][0], node.val[0]) )
             rightChildRegion = ( (currentRegion[0][0], currentRegion[0][1]) , (node.val[0], currentRegion[1][1]) )
 
-        print("    leftChild: ", leftChildRegion, "    rightChild: ", rightChildRegion)
-            
+   
         
 
         # if region of left child is fully contained in target region
         if self.containsRegion(targetRegion, leftChildRegion):
-            print("   left contains")
             # Report all leaves in the subtree, (Add them to the output array)
             self.reportSubTree(node.left, output)
 
         # Else if region of left child intersects target region
-        elif self.regionsIntersect(targetRegion, leftChildRegion):
-            print("   left  intersects")
+        elif self.regionsIntersect(targetRegion, leftChildRegion):  
             #recurseSearchKDTree(lc(node)
             self.recurseSearchKDTree(node.left, leftChildRegion, targetRegion, output)
 
 
-        print("In node: ", node.val, "\n     leftChildRegion is now: ", leftChildRegion, " rightChildRegion is now: ", rightChildRegion)
+
         
 
         
         # if region of right child is fully contained in target region
         if self.containsRegion(targetRegion, rightChildRegion):
-            print("    right contains")
             # Report all leaves in the subtree, (Add them to the output array)
             self.reportSubTree(node.right, output)
 
         # Else if region of right child intersects target region
-        elif self.regionsIntersect(targetRegion, rightChildRegion):
-            print("    right intersects")
+        elif self.regionsIntersect(targetRegion, rightChildRegion):      
             #recurseSearchKDTree(rc(node)
             self.recurseSearchKDTree(node.right, rightChildRegion, targetRegion, output)
 
@@ -180,17 +191,7 @@ class OrthogonalRangeSearch():
 
         return True
 
-    def sortPoints(self, points: List[Point]):
-        xSort = sorted(points)
-        ySort = sorted(points, key = lambda x: x[1])
-
-        return (xSort, ySort)
-
-
-
-    
-
-
+  
 
     # getMedian --------------------------------------------------------------------------------------------
     # Returns the median value of a given list of points assuming that they are sorted, takes a flag representing if the x or y value should be used
@@ -200,24 +201,18 @@ class OrthogonalRangeSearch():
     # Modifies --> None
     # Returns  --> float
 
-    def getMedian(self, points, x) -> float:
+    def getMedian(self, points, x):
         return ( points[int(len(points) / 2)][x] + points[int((len(points) -1) / 2)][x] ) / 2
 
 
 class TestOrthogonalRangeSearch(unittest.TestCase):
 
-    def test_sortPoints(self):
-        ORS = OrthogonalRangeSearch()
-        res = ORS.sortPoints( [(-1,4),(4,6),(2,-8),(122,43),(0,3),(-123,-54)] )
-        self.assertEqual(res[0] , [(-123, -54), (-1, 4), (0, 3), (2, -8), (4, 6), (122, 43)], "sortPoints Failed")
-        self.assertEqual(res[1] , [(-123, -54), (2, -8), (0, 3), (-1, 4), (4, 6), (122, 43)], "sortPoints Failed")
+    
 
     def test_getMedian(self):
         ORS = OrthogonalRangeSearch()
         self.assertEqual(ORS.getMedian( [(1,1),(2,2),(3,3),(4,4),(5,5),(6,6),(7,7)] , 0) , 4, "getMedian() Failed")
         self.assertEqual(ORS.getMedian( [(1,1),(2,2),(3,3),(4,4),(5,5),(5,5),(6,6),(7,7)], 1) , 4.5, "getMedian() Failed")
-    
-
 
     def test_recurseBuildKDTree(self):
 
@@ -276,6 +271,22 @@ class TestOrthogonalRangeSearch(unittest.TestCase):
         self.assertEqual( ORS.regionsIntersect( ((3,6.5),(-float("inf"), 3)), ((2,9),(1, 7)) ), True, "regionsIntersect() Failed")
         self.assertEqual( ORS.regionsIntersect( ( (2,9),(1, 7) ), ( (3,6.5) , (-float("inf"), 3) )), True, "regionsIntersect() Failed")
 
+
+    def test_orthogonalRangeSearch(self):
+
+        ORS = OrthogonalRangeSearch()
+        points1 = [(1,1),(2,4),(5,3),(8,7),(9,10),(40,30)]
+        region1 = ((2,9), (1,7))
+        self.assertEqual(ORS.orthogonalRangeSearch(points1, region1), [(2,4),(5,3),(8,7)], "orthogonalRangeSearch() Failed")
+
+
+        points2 = [(1,1),(2,4),(5,3),(8,7),(9,10),(40,30),(2,1),(9,7)]
+        region2 = ((2,9), (1,7))
+        self.assertEqual(ORS.orthogonalRangeSearch(points2, region2), [(2,1),(2,4),(5,3),(8,7),(9,7)], "orthogonalRangeSearch() Failed")
+
+        points3 = [(-5,9),(-8,5),(9,1000),(0,0),(5,4),(15, 354), (5,20), (30, 25), (41.02, 43)]
+        region3 = ((-7,41.05), (1,44))
+        self.assertEqual(ORS.orthogonalRangeSearch(points3, region3), [(-5,9),(5,4),(5,20),(30,25), (41.02, 43)], "orthogonalRangeSearch() Failed")
 
 
 if __name__ == '__main__':
