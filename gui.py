@@ -4,7 +4,6 @@ import random
 
 from typing import List, Tuple
 
-from avl import TreeNode, AVL_Tree
 
 Point = Tuple[int, int]
 
@@ -16,8 +15,6 @@ OPTION_FRAME_WIDTH = 170
 class app:
 
     def __init__(self, root):
-
-
 
      
 
