@@ -3,6 +3,8 @@ import threading
 import random
 from orthogonalRangeSearch import OrthogonalRangeSearch
 from orthogonalRangeSearchAnimate import OrthogonalRangeSearch as OrthogonalRangeSearchAnimate
+import threading
+
 
 from typing import List, Tuple
 
@@ -29,7 +31,7 @@ class app:
         self.winHeight = WINDOW_HEIGHT
 
 
-        self.pointList = []
+        self.pointList = set()
         self.targetRange = ()
      
         self.root.title("Convex Hull")
@@ -81,7 +83,8 @@ class app:
 
         num = int(numEntry.get())
         
-        del pointList[:]
+        pointList.clear()
+
         for _ in range(num):
             self.addPoint((random.randrange(25, rangeX), random.randrange(25,rangeY)), canvas, pointList)
 
@@ -114,19 +117,35 @@ class app:
         print(range)
 
 
+        leftX = min(self.targetRange[0][0],self.targetRange[1][0])
+        rightX = max(self.targetRange[0][0],self.targetRange[1][0])
+        bottomY = min(self.targetRange[0][1],self.targetRange[1][1])
+        topY = max(self.targetRange[0][1],self.targetRange[1][1])        
+
+        newRange = ((leftX, rightX),(bottomY, topY))
+
+
         if not animateFlag.get():
             ORS = OrthogonalRangeSearch()
-            leftX = min(self.targetRange[0][0],self.targetRange[1][0])
-            rightX = max(self.targetRange[0][0],self.targetRange[1][0])
-            bottomY = min(self.targetRange[0][1],self.targetRange[1][1])
-            topY = max(self.targetRange[0][1],self.targetRange[1][1])        
-
-            newRange = ((leftX, rightX),(bottomY, topY))
-
             result = ORS.orthogonalRangeSearch(pointList, newRange)
 
             for x,y in result:
                 canvas.create_oval(x - 5, y - 5, x + 5, y + 5, fill='red')
+
+
+        else:
+
+            self.t1 = threading.Thread(target=self.animateORS, args=(pointList, newRange, canvas) )
+            self.t1.start()
+
+        
+    def animateORS(self, pointList, newRange, canvas):
+
+        ORS = OrthogonalRangeSearchAnimate(canvas)
+        result = ORS.orthogonalRangeSearch(pointList, newRange, canvas)
+
+        for x,y in result:
+            canvas.create_oval(x - 5, y - 5, x + 5, y + 5, fill='red')
 
         
 
@@ -190,7 +209,7 @@ class app:
 
     def addPoint(self, point, canvas, pointList):
 
-        pointList.append((point[0], point[1]))
+        pointList.add((point[0], point[1]))
         
         python_green = "#476042"
         x1, y1 = (point[0] - 2), (point[1] - 2)
