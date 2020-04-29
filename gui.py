@@ -25,7 +25,7 @@ class app:
 
 
         self.pointList = []
-        
+        self.range = ()
      
         self.root.title("Convex Hull")
         self.root.geometry(str(self.winWidth) + "x" + str(self.winHeight))
@@ -35,6 +35,7 @@ class app:
 
         self.canvas = Canvas(self.mainFrame, width= self.winWidth - OPTION_FRAME_WIDTH, height=self.winHeight)
         self.canvas.bind("<Button-1>", lambda event, canvas=self.canvas, pointList=self.pointList: self.onClick(event, canvas, pointList))
+        self.canvas.bind("<Button-3>", lambda event, canvas=self.canvas: self.onRightClick(event, canvas) )
         self.canvas.pack(side=LEFT, fill='both') 
 
         self.optionFrame = Frame(self.mainFrame, borderwidth=1, relief=RAISED, width= OPTION_FRAME_WIDTH, height=self.winHeight)
@@ -45,13 +46,11 @@ class app:
         
 
         self.startButton = Button(self.optionFrame, width=10, height=1, text="Start", padx=1, pady=1, command=  self.startButtonPressed)
-      
-
-
-
-
         self.startButton.pack(side=TOP,  expand=False, fill="none")
-        
+
+        self.animateVar = IntVar(0)
+        self.animateCheckbox = Checkbutton(self.optionFrame, text="Animate", variable=self.animateVar)
+        self.animateCheckbox.pack(side=TOP)
        
         self.generatePointsLabel = Label(self.optionFrame, text="Number of Points:", width=20)
         self.numOfPointsField = Entry(self.optionFrame, width = 10)
@@ -123,6 +122,39 @@ class app:
         self.addPoint((x,y), canvas, pointList)
         
    
+   # onRightClick --------------------------------------------------------------------------------------------
+    # Called when canvas(self.canvas) is right clicked on, draws the range area if a point was previously selected
+    #   Parameters: Canvas (tkinter), range: Tuple[Point]
+    #
+    #   Modifies: self.range
+    # --> Returns: None
+
+    def onRightClick(self, event, canvas):
+        # print(event.x)
+        x,y = event.x, event.y
+        print(range)
+        print("x: ", x, " y: ", y)
+
+        if self.range == ():
+            canvas.create_oval(x - 3, y - 3, x + 3, y + 3, fill='blue', tag="rangePoint")
+            self.range = ((x,y), None)
+            print(self.range)
+
+        elif self.range[1] == None:
+            print("range already created")
+            self.range = ((self.range[0][0], self.range[0][1]),(x,y))
+            canvas.delete("rangePoint")
+            canvas.create_rectangle(self.range[0][0], self.range[0][1], self.range[1][0], self.range[1][1], fill='blue', stipple='gray50', tag="range")
+        else:
+            canvas.delete("range")
+            self.range = ((x,y), None)
+
+     
+        
+   
+
+
+    
 
 
     
@@ -151,7 +183,7 @@ class app:
 if __name__ == "__main__":
 
     root = Tk()
-    root.title("Convex Hull")
+    root.title("Orthogonal Range Search")
     # root.iconbitmap(r'favicon.ico')
     # root.geometry('300x300')
     mainwin = app(root)
