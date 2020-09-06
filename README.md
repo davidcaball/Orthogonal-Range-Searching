@@ -1,5 +1,6 @@
 # Orthogonal-Range-Searching
-GUI For implementation and visualization of the Orthogonal Range Search algorithm
+
+![GUI For implementation and visualization of the Orthogonal Range Search algorithm](https://i.imgur.com/clIrD9y.png)
 
 To Run:
 > python gui.py
